@@ -1,0 +1,8 @@
+# Beyond26 Robots.txt
+User-agent: *
+Allow: /
+
+# Disallow admin/api routes
+Disallow: /api/
+
+Sitemap: https://beyond26.com/sitemap.xml

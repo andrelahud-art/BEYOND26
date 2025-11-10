@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 96%; /* #F5F5F5 */
+    --card: 0 0% 4%; /* #0A0A0A */
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 43 74% 52%; /* #D4AF37 gold */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 0%;
+    --secondary-foreground: 43 74% 52%;
+    --muted: 0 0% 53%; /* #888888 */
+    --muted-foreground: 0 0% 96%;
+    --accent: 43 74% 52%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 96%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 43 74% 52%;
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E0C46A;
+}
+
+/* Focus visible styles for accessibility */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
+
+/* Skip to content link */
+.skip-to-content {
+  @apply absolute left-0 top-0 z-50 -translate-y-full bg-primary px-4 py-2 text-primary-foreground transition-transform focus:translate-y-0;
+}

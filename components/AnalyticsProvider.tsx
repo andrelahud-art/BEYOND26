@@ -1,0 +1,44 @@
+'use client';
+
+import Script from 'next/script';
+import { Suspense } from 'react';
+import { GA_TRACKING_ID } from '@/lib/analytics';
+import { AnalyticsTracker } from './AnalyticsTracker';
+
+export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+  if (!GA_TRACKING_ID) {
+    return <>{children}</>;
+  }
+
+  return (
+    <>
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+      />
+      <Script
+        id="gtag-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('consent', 'default', {
+              'analytics_storage': 'denied'
+            });
+
+            gtag('config', '${GA_TRACKING_ID}', {
+              page_path: window.location.pathname,
+            });
+          `,
+        }}
+      />
+      <Suspense fallback={null}>
+        <AnalyticsTracker />
+      </Suspense>
+      {children}
+    </>
+  );
+}
