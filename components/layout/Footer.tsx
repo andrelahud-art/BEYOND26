@@ -3,9 +3,10 @@ import { Instagram, Music2, Twitter } from 'lucide-react';
 const links = [
   { name: 'About', href: '#hero' },
   { name: 'Cities', href: '#cities' },
-  { name: 'Become a Local', href: '#become-local' },
+  { name: 'Travelers', href: '#booking-layer' },
+  { name: 'Become a Local', href: '#local-layer' },
   { name: 'FAQ', href: '#trust' },
-  { name: 'Contact', href: '#booking' },
+  { name: 'Contact', href: '#booking-layer' },
 ];
 
 const socialLinks = [

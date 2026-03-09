@@ -7,8 +7,9 @@ const navigation = [
   { name: 'How it Works', href: '#how-it-works' },
   { name: 'Cities', href: '#cities' },
   { name: 'Locals', href: '#locals' },
-  { name: 'Become a Local', href: '#become-local' },
-  { name: 'FAQ', href: '#trust' },
+  { name: 'Panel Cliente', href: '#booking-layer' },
+  { name: 'Panel Local', href: '#local-layer' },
+  { name: 'Trust', href: '#trust' },
 ];
 
 export function Navbar() {
@@ -22,7 +23,7 @@ export function Navbar() {
           <span className="text-primary">26</span>
         </a>
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-5 md:flex">
           {navigation.map((item) => (
             <a key={item.name} href={item.href} className="text-sm text-muted-foreground transition hover:text-primary">
               {item.name}
@@ -30,18 +31,16 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden md:block">
-          <a href="#booking" className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
-            Find a Local
+        <div className="hidden gap-2 md:flex">
+          <a href="#booking-layer" className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary">
+            Soy viajero
+          </a>
+          <a href="#local-layer" className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
+            Soy local
           </a>
         </div>
 
-        <button
-          type="button"
-          className="md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
+        <button type="button" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
@@ -59,13 +58,10 @@ export function Navbar() {
                 {item.name}
               </a>
             ))}
-            <a
-              href="#booking"
-              className="mt-2 block rounded-full bg-primary px-5 py-2 text-center text-sm font-semibold text-primary-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Find a Local
-            </a>
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <a href="#booking-layer" className="rounded-full border border-border px-4 py-2 text-center text-sm font-semibold">Soy viajero</a>
+              <a href="#local-layer" className="rounded-full bg-primary px-4 py-2 text-center text-sm font-semibold text-primary-foreground">Soy local</a>
+            </div>
           </div>
         </div>
       )}
