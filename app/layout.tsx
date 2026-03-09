@@ -7,9 +7,9 @@ import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
 
 export const metadata: Metadata = generateSEOMetadata({
-  title: 'Beyond26 — Luxury Shadow Concierge for 2026 Travelers',
+  title: 'BEYON26 — Explore Mexico with Verified Local Companions',
   description:
-    'Discreet, bilingual, insured. Book your personal Shadow for Mexico 2026 — Matchday, Weekend, or Elite Family packages. Premium concierge service.',
+    'Connect with verified local companions in Mexico City, Guadalajara, and Monterrey. Discover Mexico beyond tourist traps before World Cup 2026.',
 });
 
 export default function RootLayout({
