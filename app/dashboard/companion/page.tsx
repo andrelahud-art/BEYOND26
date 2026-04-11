@@ -108,7 +108,7 @@ export default async function CompanionDashboardPage() {
   const totalEarnings = (allBookings.reduce((sum, booking: any) => sum + (booking.total_charged || 0), 0) * 0.85).toFixed(2);
 
   const BookingCard = ({ booking, status }: any) => (
-    <Link href={`/dashboard/traveler/bookings/${booking.id}`}>
+    <Link href={`/dashboard/bookings/${booking.id}`}>
       <Card className="cursor-pointer p-4 transition hover:shadow-md">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">

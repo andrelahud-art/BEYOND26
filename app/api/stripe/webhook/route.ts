@@ -86,14 +86,14 @@ export async function POST(request: Request) {
           created_at: new Date().toISOString(),
         });
 
-      // Log status change
+      // Log status change (no user for webhook, use NULL)
       await supabase
         .from('booking_status_history')
         .insert({
           booking_id: bookingId,
           from_status: 'pending',
           to_status: 'confirmed',
-          changed_by: 'stripe_webhook',
+          changed_by: null,
         });
 
       console.log(`Booking ${bookingId} confirmed via Stripe payment`);

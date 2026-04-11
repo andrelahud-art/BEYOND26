@@ -1,5 +1,6 @@
 import { requireRole } from '@/lib/utils/permissions';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -15,7 +16,12 @@ import {
 
 export default async function AdminApplicationsPage() {
   const user = await requireRole(['admin', 'ops']);
-  const supabase = createClient();
+
+  // Use service role client to bypass RLS and read all pending applications
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   // Fetch pending companion applications
   const { data: applicationsData } = await supabase
