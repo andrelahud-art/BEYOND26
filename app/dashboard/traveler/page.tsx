@@ -49,7 +49,7 @@ export default async function TravelerDashboardPage() {
       ) : (
         <div className="space-y-4">
           {bookings.map((b: any) => (
-            <Link key={b.id} href={`/dashboard/traveler/bookings/${b.id}`}>
+            <Link key={b.id} href={`/dashboard/bookings/${b.id}`}>
               <article className="rounded-2xl border border-border bg-card p-5 transition hover:shadow-md cursor-pointer">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>

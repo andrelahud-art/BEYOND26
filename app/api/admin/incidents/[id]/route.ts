@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 /**
  * PATCH /api/admin/incidents/[id]
@@ -14,6 +15,7 @@ export async function PATCH(
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    // Use session client only for auth check (RLS-safe for users table)
     const supabase = createClient();
 
     // Check authorization
@@ -26,6 +28,12 @@ export async function PATCH(
     if (!userRecord || !['admin', 'ops'].includes(userRecord.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    // Use service role client for incident mutations (bypasses RLS)
+    const adminSupabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     const { status, resolution } = await request.json();
 
@@ -50,8 +58,8 @@ export async function PATCH(
       updateData.status = 'resolved';
     }
 
-    // Update incident
-    const { data: incident, error } = await supabase
+    // Update incident using service role (bypasses RLS)
+    const { data: incident, error } = await adminSupabase
       .from('incidents')
       .update(updateData)
       .eq('id', params.id)
@@ -61,7 +69,7 @@ export async function PATCH(
     if (error) throw error;
 
     // Log admin action
-    await supabase
+    await adminSupabase
       .from('admin_actions')
       .insert({
         admin_id: user.id,

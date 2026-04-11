@@ -47,12 +47,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Get safety session
-    const { data: session } = await supabase
+    // Get or create safety session — required for SOS alert
+    let { data: session } = await supabase
       .from('safety_sessions')
       .select('id')
       .eq('booking_id', data.bookingId)
       .single();
+
+    if (!session) {
+      const { data: newSession, error: sessionError } = await supabase
+        .from('safety_sessions')
+        .insert({
+          booking_id: data.bookingId,
+          status: 'pending_checkin',
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (sessionError || !newSession) {
+        return NextResponse.json(
+          { error: 'Could not create safety session for SOS alert' },
+          { status: 500 }
+        );
+      }
+      session = newSession;
+    }
 
     // Create incident first
     const incidentCategory = mapAlertToCategory(data.alertType);
@@ -72,11 +92,12 @@ export async function POST(request: Request) {
 
     if (incError) throw incError;
 
-    // Create SOS alert
+    // Create SOS alert (session guaranteed non-null at this point)
+    const sessionId = session!.id;
     const { data: sos, error: sosError } = await supabase
       .from('sos_alerts')
       .insert({
-        safety_session_id: session?.id || '',
+        safety_session_id: sessionId,
         triggered_by: user.id,
         alert_type: data.alertType,
         lat: data.lat,
