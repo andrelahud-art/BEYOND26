@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     // Fetch canonical offering data from DB (ignore client basePrice)
     const { data: offering, error: offeringError } = await supabase
       .from('service_offerings')
-      .select('base_price, companion_id')
+      .select('base_price, companion_id, max_group_size')
       .eq('id', data.serviceOfferingId)
       .single();
 
@@ -31,6 +31,14 @@ export async function POST(request: Request) {
     // Verify companion matches (prevent cross-companion requests)
     if (offering.companion_id !== data.companionId) {
       return NextResponse.json({ error: 'Invalid companion for this offering' }, { status: 400 });
+    }
+
+    // Validate group size doesn't exceed offering max
+    if (data.groupSize > offering.max_group_size) {
+      return NextResponse.json(
+        { error: `Group size exceeds maximum of ${offering.max_group_size}` },
+        { status: 400 }
+      );
     }
 
     // Use server-side base_price, never trust client

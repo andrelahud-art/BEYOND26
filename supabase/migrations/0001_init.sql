@@ -452,6 +452,18 @@ as $$
   );
 $$;
 
+-- Helper: is the current user admin or ops?
+create or replace function public.is_admin_or_ops()
+returns boolean
+language sql
+stable
+as $$
+  select exists (
+    select 1 from public.users
+    where id = auth.uid() and role in ('admin', 'ops')
+  );
+$$;
+
 -- ---------- USERS ----------
 drop policy if exists users_read_own on public.users;
 create policy users_read_own on public.users
@@ -486,10 +498,15 @@ drop policy if exists companions_self_insert on public.companion_profiles;
 create policy companions_self_insert on public.companion_profiles
   for insert with check (user_id = auth.uid());
 
--- ---------- VERIFICATIONS (companions read-only) ----------
+-- ---------- VERIFICATIONS (companions read-only & insert own) ----------
 drop policy if exists verifications_self on public.companion_verifications;
 create policy verifications_self on public.companion_verifications
   for select using (public.is_companion_owner(companion_id));
+
+-- Allow companions to insert their own verification records (e.g. during application)
+drop policy if exists verifications_insert_self on public.companion_verifications;
+create policy verifications_insert_self on public.companion_verifications
+  for insert with check (public.is_companion_owner(companion_id));
 
 -- ---------- VERIFICATIONS (ops/admin adjudicate) ----------
 drop policy if exists verifications_admin on public.companion_verifications;
@@ -514,6 +531,61 @@ drop policy if exists slots_owner_all on public.availability_slots;
 create policy slots_owner_all on public.availability_slots
   for all using (public.is_companion_owner(companion_id))
   with check (public.is_companion_owner(companion_id));
+
+-- ---------- SAFETY SESSIONS ----------
+-- Travelers can read/update their own booking sessions
+drop policy if exists sessions_traveler on public.safety_sessions;
+create policy sessions_traveler on public.safety_sessions
+  for select using (
+    exists (
+      select 1 from public.bookings
+      where id = booking_id and traveler_id = auth.uid()
+    )
+  );
+
+create policy sessions_traveler_update on public.safety_sessions
+  for update using (
+    exists (
+      select 1 from public.bookings
+      where id = booking_id and traveler_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.bookings
+      where id = booking_id and traveler_id = auth.uid()
+    )
+  );
+
+-- Companions can read/update their booking sessions
+drop policy if exists sessions_companion on public.safety_sessions;
+create policy sessions_companion on public.safety_sessions
+  for select using (
+    exists (
+      select 1 from public.bookings b
+      join public.companion_profiles cp on cp.id = b.companion_id
+      where b.id = booking_id and cp.user_id = auth.uid()
+    )
+  );
+
+create policy sessions_companion_update on public.safety_sessions
+  for update using (
+    exists (
+      select 1 from public.bookings b
+      join public.companion_profiles cp on cp.id = b.companion_id
+      where b.id = booking_id and cp.user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from public.bookings b
+      join public.companion_profiles cp on cp.id = b.companion_id
+      where b.id = booking_id and cp.user_id = auth.uid()
+    )
+  );
+
+-- System (webhooks/API) can insert safety sessions with service role
+-- Service role client will bypass RLS
 
 -- ---------- BOOKINGS ----------
 drop policy if exists bookings_traveler_read on public.bookings;
