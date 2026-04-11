@@ -35,12 +35,13 @@ async function ExploreContent({
     .select(
       `
       id,
+      user_id,
       display_name,
       bio,
       avg_rating,
       total_reviews,
       trust_score,
-      user_id(avatar_url),
+      users(avatar_url),
       service_offerings(base_price, service_type, duration_minutes),
       companion_languages(languages(code, name)),
       companion_service_areas(service_zones(name))
@@ -96,9 +97,9 @@ async function ExploreContent({
             {filtered.map((c: any) => (
               <CompanionCard
                 key={c.id}
-                id={c.id}
+                id={c.user_id}
                 displayName={c.display_name}
-                image={c.user_id?.avatar_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400'}
+                image={c.users?.avatar_url || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400'}
                 role={c.bio?.substring(0, 50) + '...' || 'Companion'}
                 rating={c.avg_rating || 4.5}
                 totalReviews={c.total_reviews || 0}
