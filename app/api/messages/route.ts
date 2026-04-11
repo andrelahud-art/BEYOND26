@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       .from('messages')
       .insert({
         thread_id: threadId,
-        author_id: user.id,
+        sender_id: user.id,
         content,
         created_at: new Date().toISOString(),
       })

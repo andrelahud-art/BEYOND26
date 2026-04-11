@@ -47,7 +47,7 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/traveler/bookings/${bookingId}?success=true`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/bookings/${bookingId}?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/traveler`,
       metadata: {
         bookingId,

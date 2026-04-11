@@ -45,9 +45,20 @@ export default async function BookingDetailPage({
     notFound();
   }
 
+  // Fetch companion profile if it exists
+  let companionUserId: string | null = null;
+  if (booking.companion_id) {
+    const { data: profile } = await supabase
+      .from('companion_profiles')
+      .select('user_id')
+      .eq('id', booking.companion_id)
+      .single();
+    companionUserId = profile?.user_id || null;
+  }
+
   // Check authorization
   const isTraveler = booking.traveler_id === user.id;
-  const isCompanion = booking.companion_id?.toString() === user.id;
+  const isCompanion = companionUserId === user.id;
 
   if (!isTraveler && !isCompanion) {
     redirect('/');

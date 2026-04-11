@@ -520,6 +520,12 @@ create policy bookings_companion_read on public.bookings
 drop policy if exists bookings_traveler_insert on public.bookings;
 create policy bookings_traveler_insert on public.bookings
   for insert with check (auth.uid() = traveler_id);
+drop policy if exists bookings_traveler_update on public.bookings;
+create policy bookings_traveler_update on public.bookings
+  for update using (auth.uid() = traveler_id);
+drop policy if exists bookings_companion_update on public.bookings;
+create policy bookings_companion_update on public.bookings
+  for update using (public.is_companion_owner(companion_id));
 
 -- ---------- REVIEWS ----------
 drop policy if exists reviews_public_read on public.reviews;

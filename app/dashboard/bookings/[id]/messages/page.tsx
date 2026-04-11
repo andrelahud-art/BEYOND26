@@ -90,7 +90,7 @@ export default async function BookingMessagesPage({
             messages.map((msg: any) => (
               <div
                 key={msg.id}
-                className={`flex gap-3 ${msg.author_id === user.id ? 'flex-row-reverse' : ''}`}
+                className={`flex gap-3 ${msg.sender_id === user.id ? 'flex-row-reverse' : ''}`}
               >
                 <img
                   src={msg.users?.avatar_url || 'https://via.placeholder.com/32'}

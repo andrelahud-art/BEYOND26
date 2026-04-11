@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export default async function AdminApplicationsPage() {
-  const user = await requireRole('admin', 'ops');
+  const user = await requireRole(['admin', 'ops']);
   const supabase = createClient();
 
   // Fetch pending companion applications
