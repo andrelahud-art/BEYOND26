@@ -5,8 +5,29 @@
 import { z } from 'zod';
 import { SERVICE_DURATIONS, SERVICE_TYPES } from '@/lib/utils/constants';
 
-// ===== Re-exports from Phase 0 =====
-export { signInSchema, signUpSchema, completeProfileSchema } from './schemas';
+// ===== AUTH SCHEMAS (Phase 0) =====
+export const signInSchema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+export type SignInInput = z.infer<typeof signInSchema>;
+
+export const signUpSchema = z.object({
+  email: z.string().email('Invalid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+  termsAccepted: z.boolean().refine((val) => val === true, {
+    message: 'You must accept the terms',
+  }),
+});
+export type SignUpInput = z.infer<typeof signUpSchema>;
+
+export const completeProfileSchema = z.object({
+  fullName: z.string().min(2).max(100),
+  phone: z.string().optional(),
+  locale: z.string().optional(),
+});
+export type CompleteProfileInput = z.infer<typeof completeProfileSchema>;
 
 // ===== COMPANION APPLICATION — Multi-step =====
 export const companionApplicationStep1Schema = z.object({
@@ -69,6 +90,7 @@ export const createBookingSchema = z.object({
   startAt: z.string().datetime(),
   endAt: z.string().datetime(),
   groupSize: z.number().int().min(1).max(10),
+  basePrice: z.number().positive('Price must be positive'),
   meetingPointName: z.string().min(3).max(200),
   meetingPointLat: z.number().min(-90).max(90).optional(),
   meetingPointLng: z.number().min(-180).max(180).optional(),
@@ -95,14 +117,12 @@ export const declineBookingSchema = z.object({
 });
 
 export const checkInSchema = z.object({
-  bookingId: z.string().uuid(),
   lat: z.number().min(-90).max(90).optional(),
   lng: z.number().min(-180).max(180).optional(),
   method: z.enum(['code', 'gps', 'manual']).default('manual'),
 });
 
 export const checkOutSchema = z.object({
-  bookingId: z.string().uuid(),
   method: z.enum(['mutual_confirm', 'auto_timer', 'manual']).default('mutual_confirm'),
 });
 

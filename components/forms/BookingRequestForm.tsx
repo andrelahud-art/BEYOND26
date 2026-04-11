@@ -90,6 +90,7 @@ export default function BookingRequestForm({
         startAt: new Date(formData.startAt).toISOString(),
         endAt: new Date(formData.endAt || formData.startAt).toISOString(),
         groupSize: parseInt(formData.groupSize),
+        basePrice: selectedOffering?.base_price || 0,
         meetingPointName: formData.meetingPointName,
         meetingPointLat: formData.meetingPointLat ? parseFloat(formData.meetingPointLat) : undefined,
         meetingPointLng: formData.meetingPointLng ? parseFloat(formData.meetingPointLng) : undefined,

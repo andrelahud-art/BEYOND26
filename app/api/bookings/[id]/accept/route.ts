@@ -9,7 +9,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
     const supabase = createClient();
 
-    // Verify companion owns this booking
+    // Fetch booking
     const { data: booking } = await supabase
       .from('bookings')
       .select('companion_id, booking_status')
@@ -17,6 +17,17 @@ export async function POST(request: Request, { params }: { params: { id: string 
       .single();
 
     if (!booking) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    // Verify companion owns this booking
+    const { data: companion } = await supabase
+      .from('companion_profiles')
+      .select('user_id')
+      .eq('id', booking.companion_id)
+      .single();
+
+    if (!companion || companion.user_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // Update booking to confirmed
     const { data: updated, error } = await supabase

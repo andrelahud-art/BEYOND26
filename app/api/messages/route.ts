@@ -49,7 +49,17 @@ export async function POST(request: Request) {
     }
 
     const isTraveler = booking.traveler_id === user.id;
-    const isCompanion = booking.companion_id?.toString() === user.id;
+
+    // Check if user is companion
+    let isCompanion = false;
+    if (booking.companion_id) {
+      const { data: companion } = await supabase
+        .from('companion_profiles')
+        .select('user_id')
+        .eq('id', booking.companion_id)
+        .single();
+      isCompanion = companion?.user_id === user.id;
+    }
 
     if (!isTraveler && !isCompanion) {
       return NextResponse.json(
