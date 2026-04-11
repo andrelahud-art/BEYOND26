@@ -1,92 +1,41 @@
 /**
- * Central Zod schemas. Every API route and form validates against one of
- * these. The rule: if data crosses a boundary, it must be parsed here first.
+ * Expanded validation schemas for Phase 1+
+ * Adds booking, reviews, safety, and admin schemas
  */
 import { z } from 'zod';
-import {
-  SERVICE_DURATIONS,
-  SERVICE_TYPES,
-  USER_ROLES,
-} from '@/lib/utils/constants';
+import { SERVICE_DURATIONS, SERVICE_TYPES } from '@/lib/utils/constants';
 
-// ---------- Auth ----------
-export const signInSchema = z.object({
-  email: z.string().email('Valid email required'),
-  password: z.string().min(8, 'At least 8 characters'),
-});
-export type SignInInput = z.infer<typeof signInSchema>;
+// ===== Re-exports from Phase 0 =====
+export { signInSchema, signUpSchema, completeProfileSchema } from './schemas';
 
-export const signUpSchema = z
-  .object({
-    email: z.string().email(),
-    password: z.string().min(8),
-    fullName: z.string().min(2).max(100),
-    role: z.enum(['traveler', 'companion']).default('traveler'),
-    termsAccepted: z.literal(true, {
-      errorMap: () => ({ message: 'You must accept the terms' }),
-    }),
-  })
-  .strict();
-export type SignUpInput = z.infer<typeof signUpSchema>;
-
-export const completeProfileSchema = z.object({
-  fullName: z.string().min(2).max(100),
-  phone: z.string().min(7).max(20).optional(),
-  locale: z.string().length(2).default('en'),
-});
-export type CompleteProfileInput = z.infer<typeof completeProfileSchema>;
-
-// ---------- Search ----------
-export const searchSchema = z.object({
-  citySlug: z.string().min(1).default('cdmx'),
-  serviceType: z.enum(SERVICE_TYPES).optional(),
-  zoneSlug: z.string().optional(),
-  languageCode: z.string().length(2).optional(),
-  durationMinutes: z
-    .coerce.number()
-    .refine((n) => (SERVICE_DURATIONS as readonly number[]).includes(n), {
-      message: 'Invalid duration',
-    })
-    .optional(),
-  minPrice: z.coerce.number().min(0).optional(),
-  maxPrice: z.coerce.number().min(0).optional(),
-  startAt: z.string().datetime().optional(),
-  endAt: z.string().datetime().optional(),
-});
-export type SearchInput = z.infer<typeof searchSchema>;
-
-// ---------- Booking request ----------
-export const createBookingSchema = z.object({
-  companionId: z.string().uuid(),
-  serviceOfferingId: z.string().uuid(),
-  slotId: z.string().uuid().optional(),
-  startAt: z.string().datetime(),
-  endAt: z.string().datetime(),
-  groupSize: z.number().int().min(1).max(10),
-  meetingPointName: z.string().min(3).max(200),
-  meetingPointLat: z.number().optional(),
-  meetingPointLng: z.number().optional(),
-  meetingPointInstructions: z.string().max(1000).optional(),
-  zoneId: z.string().uuid().optional(),
-  travelerNotes: z.string().max(2000).optional(),
-});
-export type CreateBookingInput = z.infer<typeof createBookingSchema>;
-
-// ---------- Companion application ----------
-export const companionApplicationSchema = z.object({
+// ===== COMPANION APPLICATION — Multi-step =====
+export const companionApplicationStep1Schema = z.object({
   displayName: z.string().min(2).max(60),
-  bio: z.string().min(80, 'At least 80 characters').max(1200),
+  bio: z.string().min(80).max(1200),
+  emergencyContactName: z.string().min(2).max(100),
+  emergencyContactPhone: z.string().min(7).max(20),
+});
+export type CompanionApplicationStep1 = z.infer<typeof companionApplicationStep1Schema>;
+
+export const companionApplicationStep2Schema = z.object({
   cityId: z.string().uuid(),
-  introVideoUrl: z.string().url('Intro video is required'),
   languages: z
     .array(
       z.object({
-        code: z.string().length(2),
+        languageId: z.string().uuid(),
         proficiency: z.enum(['native', 'fluent', 'conversational']),
       })
     )
     .min(1, 'At least one language'),
+});
+export type CompanionApplicationStep2 = z.infer<typeof companionApplicationStep2Schema>;
+
+export const companionApplicationStep3Schema = z.object({
   zoneIds: z.array(z.string().uuid()).min(1, 'Pick at least one service zone'),
+});
+export type CompanionApplicationStep3 = z.infer<typeof companionApplicationStep3Schema>;
+
+export const companionApplicationStep4Schema = z.object({
   offerings: z
     .array(
       z.object({
@@ -96,17 +45,68 @@ export const companionApplicationSchema = z.object({
         durationMinutes: z.number().refine((n) =>
           (SERVICE_DURATIONS as readonly number[]).includes(n)
         ),
-        basePrice: z.number().positive(),
+        basePrice: z.number().positive('Price must be positive'),
         maxGroupSize: z.number().int().min(1).max(10),
+        inclusions: z.string().max(500).optional(),
+        exclusions: z.string().max(500).optional(),
       })
     )
     .min(1, 'At least one offering'),
-  emergencyContactName: z.string().min(2).max(100),
-  emergencyContactPhone: z.string().min(7).max(20),
 });
-export type CompanionApplicationInput = z.infer<typeof companionApplicationSchema>;
+export type CompanionApplicationStep4 = z.infer<typeof companionApplicationStep4Schema>;
 
-// ---------- Reviews ----------
+export const companionApplicationStep5Schema = z.object({
+  governmentIdUrl: z.string().url('Upload government ID'),
+  selfieUrl: z.string().url('Upload selfie'),
+  introVideoUrl: z.string().url('Intro video is required'),
+});
+export type CompanionApplicationStep5 = z.infer<typeof companionApplicationStep5Schema>;
+
+// ===== BOOKING =====
+export const createBookingSchema = z.object({
+  companionId: z.string().uuid(),
+  serviceOfferingId: z.string().uuid(),
+  startAt: z.string().datetime(),
+  endAt: z.string().datetime(),
+  groupSize: z.number().int().min(1).max(10),
+  meetingPointName: z.string().min(3).max(200),
+  meetingPointLat: z.number().min(-90).max(90).optional(),
+  meetingPointLng: z.number().min(-180).max(180).optional(),
+  meetingPointInstructions: z.string().max(1000).optional(),
+  zoneId: z.string().uuid().optional(),
+  travelerNotes: z.string().max(2000).optional(),
+});
+export type CreateBookingInput = z.infer<typeof createBookingSchema>;
+
+// ===== STRIPE CHECKOUT =====
+export const checkoutSessionSchema = z.object({
+  bookingId: z.string().uuid(),
+});
+export type CheckoutSessionInput = z.infer<typeof checkoutSessionSchema>;
+
+// ===== BOOKING ACTIONS =====
+export const acceptBookingSchema = z.object({
+  bookingId: z.string().uuid(),
+});
+
+export const declineBookingSchema = z.object({
+  bookingId: z.string().uuid(),
+  reason: z.string().max(500).optional(),
+});
+
+export const checkInSchema = z.object({
+  bookingId: z.string().uuid(),
+  lat: z.number().min(-90).max(90).optional(),
+  lng: z.number().min(-180).max(180).optional(),
+  method: z.enum(['code', 'gps', 'manual']).default('manual'),
+});
+
+export const checkOutSchema = z.object({
+  bookingId: z.string().uuid(),
+  method: z.enum(['mutual_confirm', 'auto_timer', 'manual']).default('mutual_confirm'),
+});
+
+// ===== REVIEWS =====
 const scoreField = z.coerce.number().min(1).max(5);
 
 export const submitReviewSchema = z.object({
@@ -122,7 +122,16 @@ export const submitReviewSchema = z.object({
 });
 export type SubmitReviewInput = z.infer<typeof submitReviewSchema>;
 
-// ---------- Incidents / SOS ----------
+// ===== SAFETY / SOS =====
+export const sosTriggerSchema = z.object({
+  bookingId: z.string().uuid(),
+  lat: z.number().min(-90).max(90).optional(),
+  lng: z.number().min(-180).max(180).optional(),
+  alertType: z.enum(['panic', 'no_checkin', 'overtime', 'zone_exit']).default('panic'),
+});
+export type SosTriggerInput = z.infer<typeof sosTriggerSchema>;
+
+// ===== INCIDENTS =====
 export const reportIncidentSchema = z.object({
   bookingId: z.string().uuid().optional(),
   severity: z.enum(['low', 'medium', 'high', 'critical']),
@@ -141,15 +150,20 @@ export const reportIncidentSchema = z.object({
 });
 export type ReportIncidentInput = z.infer<typeof reportIncidentSchema>;
 
-export const sosTriggerSchema = z.object({
-  bookingId: z.string().uuid(),
-  lat: z.number().optional(),
-  lng: z.number().optional(),
+// ===== ADMIN =====
+export const approveCompanionSchema = z.object({
+  companionId: z.string().uuid(),
+  reason: z.string().optional(),
 });
-export type SosTriggerInput = z.infer<typeof sosTriggerSchema>;
 
-// ---------- Admin actions ----------
-export const adminRoleAssignSchema = z.object({
-  userId: z.string().uuid(),
-  role: z.enum(USER_ROLES),
+export const assignBookingSchema = z.object({
+  bookingId: z.string().uuid(),
+  companionId: z.string().uuid(),
+  reason: z.string().optional(),
+});
+
+export const resolveIncidentSchema = z.object({
+  incidentId: z.string().uuid(),
+  resolution: z.string().min(10).max(2000),
+  outcome: z.enum(['completed', 'partial_refund', 'full_refund']).optional(),
 });
