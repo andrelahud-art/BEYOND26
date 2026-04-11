@@ -17,9 +17,25 @@ export async function POST(request: Request) {
 
     const supabase = createClient();
 
-    // Calculate platform fee (15%) - multiply by group size
+    // Fetch canonical offering data from DB (ignore client basePrice)
+    const { data: offering, error: offeringError } = await supabase
+      .from('service_offerings')
+      .select('base_price, companion_id')
+      .eq('id', data.serviceOfferingId)
+      .single();
+
+    if (offeringError || !offering) {
+      return NextResponse.json({ error: 'Service offering not found' }, { status: 404 });
+    }
+
+    // Verify companion matches (prevent cross-companion requests)
+    if (offering.companion_id !== data.companionId) {
+      return NextResponse.json({ error: 'Invalid companion for this offering' }, { status: 400 });
+    }
+
+    // Use server-side base_price, never trust client
     const platformFeePercent = 0.15;
-    const subtotal = data.basePrice * data.groupSize;
+    const subtotal = offering.base_price * data.groupSize;
     const companionPayout = subtotal * 0.85;
     const platformFee = subtotal * platformFeePercent;
     const totalCharged = subtotal + platformFee;
@@ -41,7 +57,7 @@ export async function POST(request: Request) {
         zone_id: data.zoneId,
         group_size: data.groupSize,
         traveler_notes: data.travelerNotes,
-        base_price: data.basePrice,
+        base_price: offering.base_price,
         platform_fee: platformFee,
         companion_payout: companionPayout,
         total_charged: totalCharged,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { sosTriggerSchema } from '@/lib/validation/schemas';
 
 /**
@@ -74,9 +75,15 @@ export async function POST(request: Request) {
       session = newSession;
     }
 
+    // Use service role for incident mutations (bypasses RLS)
+    const adminSupabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Create incident first
     const incidentCategory = mapAlertToCategory(data.alertType);
-    const { data: incident, error: incError } = await supabase
+    const { data: incident, error: incError } = await adminSupabase
       .from('incidents')
       .insert({
         booking_id: data.bookingId,
@@ -94,7 +101,7 @@ export async function POST(request: Request) {
 
     // Create SOS alert (session guaranteed non-null at this point)
     const sessionId = session!.id;
-    const { data: sos, error: sosError } = await supabase
+    const { data: sos, error: sosError } = await adminSupabase
       .from('sos_alerts')
       .insert({
         safety_session_id: sessionId,

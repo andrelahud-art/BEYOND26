@@ -486,11 +486,16 @@ drop policy if exists companions_self_insert on public.companion_profiles;
 create policy companions_self_insert on public.companion_profiles
   for insert with check (user_id = auth.uid());
 
--- ---------- VERIFICATIONS (self only) ----------
+-- ---------- VERIFICATIONS (companions read-only) ----------
 drop policy if exists verifications_self on public.companion_verifications;
 create policy verifications_self on public.companion_verifications
-  for all using (public.is_companion_owner(companion_id))
-  with check (public.is_companion_owner(companion_id));
+  for select using (public.is_companion_owner(companion_id));
+
+-- ---------- VERIFICATIONS (ops/admin adjudicate) ----------
+drop policy if exists verifications_admin on public.companion_verifications;
+create policy verifications_admin on public.companion_verifications
+  for all using (public.is_admin_or_ops())
+  with check (public.is_admin_or_ops());
 
 -- ---------- SERVICE OFFERINGS ----------
 drop policy if exists offerings_public_read on public.service_offerings;
