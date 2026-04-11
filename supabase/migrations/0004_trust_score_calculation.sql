@@ -91,11 +91,17 @@ create or replace function public.trigger_recalc_trust_on_review()
 returns trigger
 language plpgsql
 as $$
+declare
+  companion_id_val uuid;
 begin
   if new.is_published and not old.is_published then
-    -- Asynchronously update trust score (would call external job in production)
-    -- For MVP, we'll do it synchronously
-    perform public.update_companion_trust_score(new.recipient_id);
+    -- Get companion_id from user_id (reviewee_id is a user, not companion)
+    select id into companion_id_val from public.companion_profiles
+    where user_id = new.reviewee_id;
+
+    if companion_id_val is not null then
+      perform public.update_companion_trust_score(companion_id_val);
+    end if;
   end if;
   return new;
 end;
@@ -113,12 +119,10 @@ create or replace function public.trigger_recalc_trust_on_verification()
 returns trigger
 language plpgsql
 as $$
-declare
-  companion_id_val uuid;
 begin
-  select id into companion_id_val from companion_verifications where id = new.id;
-  if companion_id_val is not null then
-    perform public.update_companion_trust_score(companion_id_val);
+  -- new.companion_id is the actual companion_profiles.id
+  if new.companion_id is not null then
+    perform public.update_companion_trust_score(new.companion_id);
   end if;
   return new;
 end;

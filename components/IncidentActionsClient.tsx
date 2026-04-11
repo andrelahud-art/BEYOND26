@@ -104,7 +104,7 @@ export default function IncidentActionsClient({
         <Button
           onClick={() => handleStatusChange('investigating')}
           disabled={isLoading || currentStatus === 'investigating'}
-          variant={currentStatus === 'investigating' ? 'default' : 'secondary'}
+          variant={currentStatus === 'investigating' ? 'primary' : 'secondary'}
         >
           Mark Investigating
         </Button>

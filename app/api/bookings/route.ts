@@ -17,11 +17,12 @@ export async function POST(request: Request) {
 
     const supabase = createClient();
 
-    // Calculate platform fee (15%)
+    // Calculate platform fee (15%) - multiply by group size
     const platformFeePercent = 0.15;
-    const companionPayout = data.basePrice * 0.85;
-    const platformFee = data.basePrice * platformFeePercent;
-    const totalCharged = data.basePrice + platformFee;
+    const subtotal = data.basePrice * data.groupSize;
+    const companionPayout = subtotal * 0.85;
+    const platformFee = subtotal * platformFeePercent;
+    const totalCharged = subtotal + platformFee;
 
     // Create booking
     const { data: booking, error } = await supabase

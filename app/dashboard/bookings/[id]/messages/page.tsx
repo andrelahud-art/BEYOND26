@@ -72,12 +72,18 @@ export default async function BookingMessagesPage({
     thread = newThread;
   }
 
+  if (!thread) {
+    notFound();
+  }
+
   // Fetch messages
-  const { data: messages = [] } = await supabase
+  const { data: messagesData } = await supabase
     .from('messages')
     .select('*, users(full_name, avatar_url)')
     .eq('thread_id', thread.id)
     .order('created_at', { ascending: true });
+
+  const messages = messagesData || [];
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -90,7 +96,7 @@ export default async function BookingMessagesPage({
         </Link>
         <div>
           <h1 className="text-2xl font-semibold">Messages</h1>
-          <p className="text-muted-foreground">{booking.service_offerings?.title}</p>
+          <p className="text-muted-foreground">{booking.service_offerings?.[0]?.title}</p>
         </div>
       </div>
 

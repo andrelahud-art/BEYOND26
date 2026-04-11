@@ -23,7 +23,6 @@ export function SignUpForm() {
     formState: { errors },
   } = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { role: 'traveler' },
   });
 
   const onSubmit = async (values: SignUpInput) => {
@@ -36,7 +35,6 @@ export function SignUpForm() {
       options: {
         data: {
           full_name: values.fullName,
-          role: values.role,
         },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },

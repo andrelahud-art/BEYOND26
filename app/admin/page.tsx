@@ -2,20 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/server';
 import { Card } from '@/components/ui/card';
-import {
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-} from 'recharts';
+import AdminDashboardCharts from '@/components/AdminDashboardCharts';
 import {
   Users,
   TrendingUp,
@@ -131,7 +118,11 @@ export default async function AdminDashboard() {
     { name: 'Critical', value: criticalIncidents },
   ];
 
-  const COLORS = ['#3b82f6', '#f59e0b', '#ef4444', '#dc2626'];
+  // Trust score distribution
+  const excellentCompanions = companions.filter((c: any) => c.trust_score >= 90).length;
+  const goodCompanions = companions.filter((c: any) => c.trust_score >= 70 && c.trust_score < 90).length;
+  const fairCompanions = companions.filter((c: any) => c.trust_score >= 50 && c.trust_score < 70).length;
+  const newCompanions = companions.filter((c: any) => c.trust_score < 50).length;
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-12">
@@ -226,94 +217,16 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Booking Status</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={bookingStatusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(entry) => `${entry.name}: ${entry.value}`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {bookingStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Payment Status</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={paymentStatusData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Incident Severity</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={incidentSeverityData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={(entry) => `${entry.name}: ${entry.value}`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {incidentSeverityData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </Card>
-
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Trust Score Distribution</h3>
-          <div className="space-y-3">
-            {[
-              { range: '90-100 (Excellent)', count: companions.filter((c: any) => c.trust_score >= 90).length },
-              { range: '70-89 (Good)', count: companions.filter((c: any) => c.trust_score >= 70 && c.trust_score < 90).length },
-              { range: '50-69 (Fair)', count: companions.filter((c: any) => c.trust_score >= 50 && c.trust_score < 70).length },
-              { range: '0-49 (Low)', count: companions.filter((c: any) => c.trust_score < 50).length },
-            ].map((item) => (
-              <div key={item.range}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span>{item.range}</span>
-                  <span className="font-medium">{item.count}</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary"
-                    style={{
-                      width: `${companions.length > 0 ? (item.count / companions.length) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+      <AdminDashboardCharts
+        bookingStatusData={bookingStatusData}
+        paymentStatusData={paymentStatusData}
+        incidentSeverityData={incidentSeverityData}
+        companionCount={companions.length}
+        excellentCompanions={excellentCompanions}
+        goodCompanions={goodCompanions}
+        fairCompanions={fairCompanions}
+        newCompanions={newCompanions}
+      />
     </main>
   );
 }

@@ -10,7 +10,7 @@ import { CompanionApplicationStep4 } from '@/lib/validation/schemas';
 import { SERVICE_TYPES, SERVICE_DURATIONS } from '@/lib/utils/constants';
 
 interface ServiceOffering {
-  serviceType: string;
+  serviceType: 'event_companion' | 'city_guide' | 'translator';
   title: string;
   description: string;
   durationMinutes: number;
@@ -148,7 +148,7 @@ export default function Step4({ data, onChange }: Step4Props) {
             <select
               id="serviceType"
               value={formData.serviceType}
-              onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, serviceType: e.target.value as 'event_companion' | 'city_guide' | 'translator' })}
               className="mt-1 block w-full rounded border border-border bg-background px-3 py-2 text-sm"
             >
               {SERVICE_TYPES.map((type) => (

@@ -27,12 +27,12 @@ export default function BookingActionsClient({ bookingId }: BookingActionsClient
     try {
       const endpoint = action === 'accept'
         ? `/api/bookings/${bookingId}/accept`
-        : `/api/bookings/${bookingId}/decline`;
+        : `/api/bookings/${bookingId}/reject`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(action === 'decline' ? { reason } : {}),
+        body: JSON.stringify(action === 'reject' ? { reason } : {}),
       });
 
       if (!response.ok) {

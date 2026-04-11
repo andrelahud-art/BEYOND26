@@ -18,7 +18,7 @@ export default async function AdminApplicationsPage() {
   const supabase = createClient();
 
   // Fetch pending companion applications
-  const { data: applications = [] } = await supabase
+  const { data: applicationsData } = await supabase
     .from('companion_profiles')
     .select(
       `
@@ -43,6 +43,7 @@ export default async function AdminApplicationsPage() {
     )
     .in('approval_status', ['pending_review', 'interview_scheduled'])
     .order('created_at', { ascending: true });
+  const applications = applicationsData || [];
 
   const VerificationStep = ({
     label,

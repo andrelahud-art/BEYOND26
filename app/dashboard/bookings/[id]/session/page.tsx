@@ -70,14 +70,14 @@ export default async function SessionPage({
 
   const isSessionActive = now >= startTime && now <= endTime;
   const isSessionCompleted = now > endTime;
-  const isCheckedIn = session?.checkin_at !== null;
-  const isCheckedOut = session?.checkout_at !== null;
+  const isCheckedIn = session && session.checkin_at !== null;
+  const isCheckedOut = session && session.checkout_at !== null;
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold">{booking.service_offerings?.title}</h1>
+        <h1 className="text-3xl font-semibold">{booking.service_offerings?.[0]?.title}</h1>
         <p className="mt-2 text-muted-foreground">Session management</p>
       </div>
 
@@ -141,7 +141,7 @@ export default async function SessionPage({
             <CheckCircle2 className="mx-auto h-12 w-12 text-green-600" />
             <h2 className="mt-3 text-xl font-semibold">Session in progress</h2>
             <p className="mt-1 text-muted-foreground">
-              Duration: {booking.service_offerings?.duration_minutes ? `${booking.service_offerings.duration_minutes / 60} hours` : 'TBD'}
+              Duration: {booking.service_offerings?.[0]?.duration_minutes ? `${booking.service_offerings[0].duration_minutes / 60} hours` : 'TBD'}
             </p>
 
             {isSessionCompleted && (

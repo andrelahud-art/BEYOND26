@@ -179,15 +179,15 @@ export default async function IncidentDetailPage({
               <div className="space-y-3 text-sm">
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Service</p>
-                  <p className="font-medium">{incident.bookings.service_offerings?.title}</p>
+                  <p className="font-medium">{incident.bookings?.[0]?.service_offerings?.[0]?.title}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Traveler</p>
-                  <p className="font-medium">{incident.bookings.users?.full_name}</p>
+                  <p className="font-medium">{incident.bookings?.[0]?.users?.[0]?.full_name}</p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-muted-foreground">Status</p>
-                  <p className="font-medium capitalize">{incident.bookings.booking_status}</p>
+                  <p className="font-medium capitalize">{incident.bookings?.[0]?.booking_status}</p>
                 </div>
                 <a href={`/dashboard/bookings/${incident.booking_id}`} className="block pt-2">
                   <Button size="sm" className="w-full" variant="secondary">
@@ -222,10 +222,10 @@ export default async function IncidentDetailPage({
           </Card>
 
           {/* Reporter */}
-          {incident.users && (
+          {incident.users?.[0]?.full_name && (
             <Card className="p-6">
               <h2 className="mb-4 text-lg font-semibold">Reported by</h2>
-              <p className="text-sm font-medium">{incident.users.full_name}</p>
+              <p className="text-sm font-medium">{incident.users[0].full_name}</p>
             </Card>
           )}
         </div>

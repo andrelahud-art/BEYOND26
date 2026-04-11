@@ -64,7 +64,7 @@ export default async function CompanionProfilePage({
       completion_rate,
       approval_status,
       cities(id, name, slug),
-      user:users(avatar_url)
+      users(avatar_url)
     `
     )
     .eq('user_id', params.slug)
@@ -76,27 +76,30 @@ export default async function CompanionProfilePage({
   }
 
   // Fetch languages
-  const { data: languages = [] } = await supabase
+  const { data: languagesData } = await supabase
     .from('companion_languages')
     .select('language_id, proficiency, languages(id, code, name)')
     .eq('companion_id', companion.id);
+  const languages = languagesData || [];
 
   // Fetch service zones
-  const { data: zones = [] } = await supabase
+  const { data: zonesData } = await supabase
     .from('companion_service_areas')
     .select('service_zones(id, name)')
     .eq('companion_id', companion.id)
     .order('priority');
+  const zones = zonesData || [];
 
   // Fetch service offerings
-  const { data: offerings = [] } = await supabase
+  const { data: offeringsData } = await supabase
     .from('service_offerings')
     .select('*')
     .eq('companion_id', companion.id)
     .eq('is_active', true);
+  const offerings = offeringsData || [];
 
-  // Fetch published reviews
-  const { data: reviews = [] } = await supabase
+  // Fetch published reviews (reviewee_id is user_id, not companion_id)
+  const { data: reviewsData } = await supabase
     .from('reviews')
     .select(
       `
@@ -108,10 +111,11 @@ export default async function CompanionProfilePage({
       users(full_name, avatar_url)
     `
     )
-    .eq('companion_id', companion.id)
+    .eq('reviewee_id', companion.user_id)
     .eq('is_published', true)
     .order('created_at', { ascending: false })
     .limit(5);
+  const reviews = reviewsData || [];
 
   const durationLabel = (mins: number) => {
     if (mins === 120) return '2 hours';
@@ -125,10 +129,10 @@ export default async function CompanionProfilePage({
       {/* Header */}
       <div className="mb-10 flex gap-6">
         <div className="h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl bg-muted">
-          {companion.user?.avatar_url && (
+          {companion.users && companion.users[0]?.avatar_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={companion.user.avatar_url}
+              src={companion.users[0].avatar_url}
               alt={companion.display_name}
               className="h-full w-full object-cover"
             />

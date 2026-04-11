@@ -63,16 +63,16 @@ export default async function BookingReviewPage({
       <div className="mb-8">
         <h1 className="text-3xl font-semibold">Leave a review</h1>
         <p className="mt-2 text-muted-foreground">
-          Share your experience with {booking.companion_profiles?.display_name}
+          Share your experience with {booking.companion_profiles?.[0]?.display_name}
         </p>
       </div>
 
       <Card className="p-8">
         <div className="mb-6 flex items-center gap-4 rounded-lg bg-muted/50 p-4">
           <div>
-            <p className="font-medium">{booking.service_offerings?.title}</p>
+            <p className="font-medium">{booking.service_offerings?.[0]?.title}</p>
             <p className="text-sm text-muted-foreground">
-              With {booking.companion_profiles?.display_name}
+              With {booking.companion_profiles?.[0]?.display_name}
             </p>
           </div>
         </div>

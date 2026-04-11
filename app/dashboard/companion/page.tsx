@@ -34,7 +34,7 @@ export default async function CompanionDashboardPage() {
   }
 
   // Fetch pending bookings (awaiting companion response)
-  const { data: pendingBookings = [] } = await supabase
+  const { data: pendingBookingsData = [] } = await supabase
     .from('bookings')
     .select(
       `
@@ -52,10 +52,11 @@ export default async function CompanionDashboardPage() {
     .eq('companion_id', profile.id)
     .eq('booking_status', 'pending')
     .order('start_at', { ascending: true });
+  const pendingBookings = pendingBookingsData || [];
 
   // Fetch upcoming sessions (confirmed, not yet started)
   const now = new Date().toISOString();
-  const { data: upcomingSessions = [] } = await supabase
+  const { data: upcomingSessionsData = [] } = await supabase
     .from('bookings')
     .select(
       `
@@ -75,9 +76,10 @@ export default async function CompanionDashboardPage() {
     .gte('start_at', now)
     .order('start_at', { ascending: true })
     .limit(10);
+  const upcomingSessions = upcomingSessionsData || [];
 
   // Fetch completed sessions
-  const { data: completedSessions = [] } = await supabase
+  const { data: completedSessionsData = [] } = await supabase
     .from('bookings')
     .select(
       `
@@ -97,12 +99,13 @@ export default async function CompanionDashboardPage() {
     .eq('booking_status', 'completed')
     .order('start_at', { ascending: false })
     .limit(10);
+  const completedSessions = completedSessionsData || [];
 
   // Calculate total earnings (placeholder)
-  const totalEarnings = (pendingBookings
+  const allBookings = pendingBookings
     .concat(upcomingSessions)
-    .concat(completedSessions)
-    .reduce((sum, booking: any) => sum + (booking.total_charged || 0), 0) * 0.85).toFixed(2);
+    .concat(completedSessions);
+  const totalEarnings = (allBookings.reduce((sum, booking: any) => sum + (booking.total_charged || 0), 0) * 0.85).toFixed(2);
 
   const BookingCard = ({ booking, status }: any) => (
     <Link href={`/dashboard/traveler/bookings/${booking.id}`}>
