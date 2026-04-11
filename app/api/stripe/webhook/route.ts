@@ -1,78 +1,106 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { getStripe } from '@/lib/stripe/client';
-import { Readable } from 'stream';
+import Stripe from 'stripe';
+import { createClient } from '@/lib/supabase/server';
 
-async function getRawBody(readable: Readable): Promise<string> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of readable) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks).toString('utf-8');
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
+});
 
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+/**
+ * POST /api/stripe/webhook
+ * Handle Stripe webhook events (payment completion, etc)
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.text();
-    const sig = request.headers.get('stripe-signature') as string;
+    const signature = request.headers.get('stripe-signature');
 
-    if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
-      return NextResponse.json({ error: 'Missing signature or secret' }, { status: 400 });
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'Missing stripe-signature' },
+        { status: 400 }
+      );
     }
 
-    const stripe = getStripe();
-    const event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    // Verify webhook signature
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err) {
+      return NextResponse.json(
+        { error: 'Webhook verification failed' },
+        { status: 400 }
+      );
+    }
 
-    const supabase = createAdminClient();
+    const supabase = createClient();
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as any;
-        const bookingId = session.metadata?.bookingId;
+    // Handle checkout.session.completed
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const bookingId = session.metadata?.bookingId;
 
-        if (bookingId) {
-          // Update booking payment status
-          await supabase
-            .from('bookings')
-            .update({
-              booking_status: 'confirmed',
-              payment_status: 'captured',
-              stripe_payment_intent_id: session.payment_intent,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', bookingId);
-
-          // Log status change
-          await supabase
-            .from('booking_status_history')
-            .insert({
-              booking_id: bookingId,
-              from_status: 'pending',
-              to_status: 'confirmed',
-              reason: 'Payment captured via Stripe',
-            });
-        }
-        break;
+      if (!bookingId) {
+        return NextResponse.json(
+          { error: 'Missing bookingId in metadata' },
+          { status: 400 }
+        );
       }
 
-      case 'charge.failed': {
-        const charge = event.data.object as any;
-        // Handle failed payment
-        console.log('Charge failed:', charge.id);
-        break;
+      // Update booking to confirmed and payment captured
+      const { data: booking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('id, booking_status, start_at, end_at')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError || !booking) {
+        console.error('Booking not found:', bookingId);
+        return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
       }
 
-      default:
-        console.log('Unhandled event type:', event.type);
+      // Update booking status and payment status
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({
+          booking_status: 'confirmed',
+          payment_status: 'captured',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', bookingId);
+
+      if (updateError) throw updateError;
+
+      // Create safety session for confirmed booking
+      await supabase
+        .from('safety_sessions')
+        .insert({
+          booking_id: bookingId,
+          status: 'pending_checkin',
+          created_at: new Date().toISOString(),
+        });
+
+      // Log status change
+      await supabase
+        .from('booking_status_history')
+        .insert({
+          booking_id: bookingId,
+          from_status: 'pending',
+          to_status: 'confirmed',
+          changed_by: 'stripe_webhook',
+        });
+
+      console.log(`Booking ${bookingId} confirmed via Stripe payment`);
     }
 
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error('Webhook error:', err);
-    return NextResponse.json({ error: String(err) }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Webhook processing failed' },
+      { status: 500 }
+    );
   }
 }

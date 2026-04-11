@@ -30,7 +30,17 @@ export default async function BookingMessagesPage({
 
   // Check authorization
   const isTraveler = booking.traveler_id === user.id;
-  const isCompanion = booking.companion_id?.toString() === user.id;
+
+  let companionUserId: string | null = null;
+  if (booking.companion_id) {
+    const { data: profile } = await supabase
+      .from('companion_profiles')
+      .select('user_id')
+      .eq('id', booking.companion_id)
+      .single();
+    companionUserId = profile?.user_id || null;
+  }
+  const isCompanion = companionUserId === user.id;
 
   if (!isTraveler && !isCompanion) {
     redirect('/');
@@ -99,14 +109,14 @@ export default async function BookingMessagesPage({
                 />
                 <div
                   className={`rounded-lg p-3 max-w-xs ${
-                    msg.author_id === user.id
+                    msg.sender_id === user.id
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
                   }`}
                 >
                   <p className="text-sm">{msg.content}</p>
                   <p className={`text-xs mt-1 ${
-                    msg.author_id === user.id
+                    msg.sender_id === user.id
                       ? 'text-primary-foreground/70'
                       : 'text-muted-foreground'
                   }`}>

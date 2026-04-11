@@ -61,13 +61,28 @@ export async function POST(request: Request) {
     const autoPublishAt = new Date();
     autoPublishAt.setDate(autoPublishAt.getDate() + 14);
 
+    // Get companion user ID to store in reviewee_id
+    const { data: companionProfile } = await supabase
+      .from('companion_profiles')
+      .select('user_id')
+      .eq('id', booking.companion_id)
+      .single();
+
+    if (!companionProfile) {
+      return NextResponse.json(
+        { error: 'Companion not found' },
+        { status: 404 }
+      );
+    }
+
     // Create review
     const { data: review, error } = await supabase
       .from('reviews')
       .insert({
         booking_id: data.bookingId,
         reviewer_id: user.id,
-        recipient_id: booking.companion_id,
+        reviewee_id: companionProfile.user_id,
+        reviewer_role: 'traveler',
         score_overall: data.scoreOverall,
         score_communication: data.scoreCommunication || null,
         score_punctuality: data.scorePunctuality || null,
@@ -78,6 +93,7 @@ export async function POST(request: Request) {
         comment: data.comment || null,
         is_published: false,
         auto_publish_at: autoPublishAt.toISOString(),
+        moderation_status: 'pending',
         created_at: new Date().toISOString(),
       })
       .select()
