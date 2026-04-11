@@ -4,13 +4,13 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CookieConsent } from '@/components/CookieConsent';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
-import { generateMetadata as generateSEOMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = generateSEOMetadata({
-  title: 'BEYON26 — Explore Mexico with Verified Local Companions',
+export const metadata: Metadata = {
+  title: 'BEYON26 — Verified local companions for World Cup 2026',
   description:
-    'Connect with verified local companions in Mexico City, Guadalajara, and Monterrey. Discover Mexico beyond tourist traps before World Cup 2026.',
-});
+    'Managed marketplace of ID-verified, interviewed, and monitored local companions in Ciudad de México. Matchday, city guiding, and live translation — backed by real ops.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+};
 
 export default function RootLayout({
   children,

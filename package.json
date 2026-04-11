@@ -1,13 +1,14 @@
 {
-  "name": "beyond26",
-  "version": "1.0.0",
+  "name": "beyon26",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "db:types": "supabase gen types typescript --local > lib/supabase/types.ts"
   },
   "dependencies": {
     "next": "^14.2.0",
@@ -20,7 +21,12 @@
     "lucide-react": "^0.358.0",
     "clsx": "^2.1.0",
     "tailwind-merge": "^2.2.0",
-    "class-variance-authority": "^0.7.0"
+    "class-variance-authority": "^0.7.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "@supabase/ssr": "^0.5.1",
+    "stripe": "^16.0.0",
+    "@stripe/stripe-js": "^4.0.0",
+    "date-fns": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

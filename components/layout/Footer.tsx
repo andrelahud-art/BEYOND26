@@ -1,13 +1,21 @@
+import Link from 'next/link';
 import { Instagram, Music2, Twitter } from 'lucide-react';
 
-const links = [
-  { name: 'About', href: '#hero' },
-  { name: 'Cities', href: '#cities' },
-  { name: 'Travelers', href: '#booking-layer' },
-  { name: 'Become a Local', href: '#local-layer' },
-  { name: 'FAQ', href: '#trust' },
-  { name: 'Contact', href: '#booking-layer' },
-];
+const footerNav = {
+  Product: [
+    { name: 'Explore CDMX', href: '/explore' },
+    { name: 'How it works', href: '/how-it-works' },
+    { name: 'Cities', href: '/cities/cdmx' },
+  ],
+  Trust: [
+    { name: 'Trust & safety', href: '/trust' },
+    { name: 'Sign in', href: '/auth/sign-in' },
+    { name: 'Get started', href: '/auth/sign-up' },
+  ],
+  Companions: [
+    { name: 'Become a companion', href: '/apply' },
+  ],
+};
 
 const socialLinks = [
   { name: 'Instagram', href: '#', icon: Instagram },
@@ -18,34 +26,59 @@ const socialLinks = [
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card">
-      <div className="container px-6 py-10 md:px-8">
-        <div className="flex flex-col items-center justify-between gap-5 md:flex-row">
-          <div className="text-xl font-semibold">
-            <span className="text-foreground">BEYON</span>
-            <span className="text-primary">26</span>
+      <div className="mx-auto max-w-6xl px-6 py-12 md:px-8">
+        <div className="grid gap-10 md:grid-cols-[1.2fr,1fr,1fr,1fr]">
+          <div>
+            <div className="text-2xl font-semibold">
+              <span className="text-foreground">BEYON</span>
+              <span className="text-primary">26</span>
+            </div>
+            <p className="mt-3 max-w-xs text-sm text-muted-foreground">
+              Managed marketplace of verified local companions for World Cup 2026.
+            </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-            {links.map((link) => (
-              <a key={link.name} href={link.href} className="text-muted-foreground transition hover:text-primary">
-                {link.name}
-              </a>
-            ))}
-          </div>
+          {Object.entries(footerNav).map(([heading, items]) => (
+            <div key={heading}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {heading}
+              </p>
+              <ul className="mt-3 space-y-2 text-sm">
+                {items.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="text-foreground/80 transition hover:text-primary"
+                    >
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
 
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} BEYON26. Building for World Cup 2026.
+          </p>
           <div className="flex items-center gap-3">
             {socialLinks.map((item) => {
               const Icon = item.icon;
               return (
-                <a key={item.name} href={item.href} aria-label={item.name} className="text-muted-foreground transition hover:text-primary">
+                <a
+                  key={item.name}
+                  href={item.href}
+                  aria-label={item.name}
+                  className="text-muted-foreground transition hover:text-primary"
+                >
                   <Icon className="h-5 w-5" />
                 </a>
               );
             })}
           </div>
         </div>
-
-        <p className="mt-6 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} BEYON26</p>
       </div>
     </footer>
   );
