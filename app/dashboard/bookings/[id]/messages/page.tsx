@@ -47,15 +47,15 @@ export default async function BookingMessagesPage({
   }
 
   // Fetch or create message thread
-  let { data: thread } = await supabase
+  let { data: thread, error: threadError } = await supabase
     .from('message_threads')
     .select('id')
     .eq('booking_id', booking.id)
     .single();
 
   if (!thread) {
-    // Create thread
-    const { data: newThread } = await supabase
+    // Create thread with error handling
+    const { data: newThread, error: insertError } = await supabase
       .from('message_threads')
       .insert({
         booking_id: booking.id,
@@ -63,6 +63,11 @@ export default async function BookingMessagesPage({
       })
       .select()
       .single();
+
+    if (insertError || !newThread) {
+      console.error('Failed to create message thread:', insertError);
+      notFound();
+    }
 
     thread = newThread;
   }

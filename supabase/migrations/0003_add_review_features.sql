@@ -29,5 +29,5 @@ create index if not exists idx_reviews_auto_publish
 
 -- Create index for active SOS alerts
 create index if not exists idx_sos_alerts_active
-  on public.sos_alerts(booking_id)
+  on public.sos_alerts(safety_session_id)
   where resolved_at is null;
