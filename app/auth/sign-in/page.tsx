@@ -27,7 +27,7 @@ export default function SignInPage({
         </div>
       )}
 
-      <SignInForm next={searchParams.next ?? '/dashboard/traveler'} />
+      <SignInForm next={searchParams.next ?? '/explore'} />
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         No account yet?{' '}
