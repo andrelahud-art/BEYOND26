@@ -167,7 +167,7 @@ export default async function CompanionProfilePage({
           <p className="mt-4 max-w-2xl text-muted-foreground">{companion.bio}</p>
 
           {/* CTA */}
-          <Link href={`/explore?companion=${companion.id}`}>
+          <Link href={`/explore/${companion.user_id}/book`}>
             <Button size="lg" className="mt-6">
               Request booking
             </Button>
