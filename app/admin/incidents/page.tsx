@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,10 +17,11 @@ export default async function IncidentsPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/auth/sign-in');
 
-  const supabase = createClient();
+  // Use session client for auth check
+  const sessionSupabase = createClient();
 
   // Check authorization
-  const { data: userRecord } = await supabase
+  const { data: userRecord } = await sessionSupabase
     .from('users')
     .select('role')
     .eq('id', user.id)
@@ -28,6 +30,12 @@ export default async function IncidentsPage() {
   if (!userRecord || !['admin', 'ops'].includes(userRecord.role)) {
     redirect('/');
   }
+
+  // Use service role client to read incidents (bypasses RLS)
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   // Fetch incidents with related booking info
   const { data: incidents } = await supabase

@@ -99,10 +99,24 @@ export async function GET(request: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const supabase = createClient();
+
+    // Fetch user's companion profile ID (if they are a companion)
+    const { data: companionProfile } = await supabase
+      .from('companion_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    // Fetch bookings where user is traveler OR companion
+    const filters = [`traveler_id.eq.${user.id}`];
+    if (companionProfile) {
+      filters.push(`companion_id.eq.${companionProfile.id}`);
+    }
+
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
-      .or(`traveler_id.eq.${user.id},companion_id.in(select id from companion_profiles where user_id = ${user.id})`)
+      .or(filters.join(','))
       .order('created_at', { ascending: false });
 
     if (error) throw error;

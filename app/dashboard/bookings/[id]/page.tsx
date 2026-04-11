@@ -33,7 +33,7 @@ export default async function BookingDetailPage({
       `
       *,
       service_offerings(title, description, base_price, duration_minutes),
-      users(id, full_name, avatar_url),
+      users!traveler_id(id, full_name, avatar_url),
       companion_profiles(id, display_name, user_id),
       users:companion_profiles(user_id)
     `
